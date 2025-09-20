@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 40003947a4482c54b88fd1f636c81cba
+guid: 73eb081a81c3a9a4f8702fcbc4950b86
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -34,7 +34,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -97,7 +97,49 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: knight.move_0
+      name: Sprite-wall_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 32
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1da431b250a5f3a44adf0ef65359cc94
+      internalID: 1703131353
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Sprite-wall_1
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 32
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e288e42d5b7699944a7d03c91075ad7a
+      internalID: -905078586
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Sprite-wall_2
       rect:
         serializedVersion: 2
         x: 0
@@ -111,14 +153,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 7610e3bc802a1d0478d51f9a8f621574
-      internalID: -56094680
+      spriteID: cc095556e0a63c642af8371bded81feb
+      internalID: -916881147
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: knight.move_1
+      name: Sprite-wall_3
       rect:
         serializedVersion: 2
         x: 32
@@ -132,113 +174,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: fa68b62d7bbafe24f932d5a9ece53602
-      internalID: -1815252783
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: knight.move_2
-      rect:
-        serializedVersion: 2
-        x: 64
-        y: 0
-        width: 32
-        height: 32
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 42d8b76d85ffc92419cfd1b2959ab46b
-      internalID: -1654782992
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: knight.move_3
-      rect:
-        serializedVersion: 2
-        x: 96
-        y: 0
-        width: 32
-        height: 32
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: fea0fc9da8e95f34a8b22c34cb72a2b9
-      internalID: -1710484049
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: knight.move_4
-      rect:
-        serializedVersion: 2
-        x: 128
-        y: 0
-        width: 32
-        height: 32
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 3126c5df2f759854c8d354131a677fe6
-      internalID: 609165896
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: knight.move_5
-      rect:
-        serializedVersion: 2
-        x: 160
-        y: 0
-        width: 32
-        height: 32
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: bddbac83f5e6898439cb395ff844101d
-      internalID: 176666424
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: knight.move_6
-      rect:
-        serializedVersion: 2
-        x: 192
-        y: 0
-        width: 32
-        height: 32
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 8338ee83b260841418c1f38023611e5d
-      internalID: 1287922284
+      spriteID: de8e30e4989b0604ea405f12e8bb8da1
+      internalID: -2144654248
       vertices: []
       indices: 
       edges: []
@@ -254,13 +191,10 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      knight.move_0: -56094680
-      knight.move_1: -1815252783
-      knight.move_2: -1654782992
-      knight.move_3: -1710484049
-      knight.move_4: 609165896
-      knight.move_5: 176666424
-      knight.move_6: 1287922284
+      Sprite-wall_0: 1703131353
+      Sprite-wall_1: -905078586
+      Sprite-wall_2: -916881147
+      Sprite-wall_3: -2144654248
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

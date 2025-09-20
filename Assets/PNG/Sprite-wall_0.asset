@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 13312, guid: 0000000000000000e000000000000000, type: 0}
-  m_Name: Sprite-0003_1
+  m_Name: Sprite-wall_0
   m_EditorClassIdentifier: 
-  m_Sprite: {fileID: 91785187, guid: 01c86e660bda7d2408babf71b92d55e6, type: 3}
+  m_Sprite: {fileID: 1703131353, guid: 73eb081a81c3a9a4f8702fcbc4950b86, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Transform:
     e00: 1
