@@ -230,17 +230,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ba7c3095aebe14545b55f168fd22cbf4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rb: {fileID: 36138500}
   firePoint: {fileID: 0}
-  jumpForce: 12
-  availableJumps: 2
-  currentAvailableJumps: 2
-  additionalJumpForce: 10
+  jumpForce: 15
+  allowDoubleJump: 1
+  fallGravityMultiplier: 5
+  lowJumpGravityMt: 4
+  groundMask:
+    serializedVersion: 2
+    m_Bits: 2147483648
+  groundCheckDist: 0.05
+  boxCastSize: {x: 0, y: 0}
+  boxCastShrink: {x: 0.05, y: 0}
   speed: 5
-  Attack: {fileID: 0}
-  attackRangeVert: 1.5
-  attackRangeHori: 0.5
-  useless: 1
+  jumpButton: Jump
 --- !u!212 &36138498
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -6018,7 +6020,7 @@ GameObject:
   - component: {fileID: 1505080130}
   - component: {fileID: 1505080129}
   - component: {fileID: 1505080131}
-  m_Layer: 0
+  m_Layer: 31
   m_Name: Ground
   m_TagString: Ground
   m_Icon: {fileID: 0}
@@ -6148,7 +6150,7 @@ GameObject:
   - component: {fileID: 1718334947}
   - component: {fileID: 1718334946}
   - component: {fileID: 1718334945}
-  m_Layer: 0
+  m_Layer: 31
   m_Name: Wall
   m_TagString: Ground
   m_Icon: {fileID: 0}
@@ -6278,7 +6280,7 @@ GameObject:
   - component: {fileID: 1996355891}
   - component: {fileID: 1996355890}
   - component: {fileID: 1996355889}
-  m_Layer: 0
+  m_Layer: 31
   m_Name: Wall (1)
   m_TagString: Ground
   m_Icon: {fileID: 0}
