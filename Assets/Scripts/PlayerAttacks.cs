@@ -11,7 +11,7 @@ public class PlayerAttacks : MonoBehaviour
     [Space]
     [Header("Attack Sets")]
     public float atkSpeed = 12f;
-    public int damage = 10;
+    public float damage = 10;
     public float cooldown = 0.25f;
     public float lifeTime = 0.8f;
     public bool canPierce = true;

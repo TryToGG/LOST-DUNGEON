@@ -7,7 +7,7 @@ public class AtkProj : MonoBehaviour
     [SerializeField] LayerMask hitMask;
     [SerializeField] LayerMask blockMask;
 
-    int _damage;
+    float _damage;
     Vector2 _dir;
     float _life;
     bool _pierce;
@@ -15,7 +15,7 @@ public class AtkProj : MonoBehaviour
     float _timer;
     bool _consumed;
 
-    public void Setup(int damage, Vector2 dir, float lifeTime, bool canPierce)
+    public void Setup(float damage, Vector2 dir, float lifeTime, bool canPierce)
     { 
         _damage = damage;
         _dir = dir;

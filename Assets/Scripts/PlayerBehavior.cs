@@ -27,7 +27,7 @@ public class PlayerBehavior : MonoBehaviour
     public float attackRangeHori = 0.5f;
     [Space]
     [Header("Status")]
-    public int noUse = 1;
+    public int useless = 1;
 
     void Start()
     {
@@ -51,6 +51,7 @@ public class PlayerBehavior : MonoBehaviour
         else if (Input.GetKeyDown(KeyCode.Space) && currentAvailableJumps != 0)  //2nd (or more) jump
         {
             rb.velocity = new Vector2(rb.velocity.x, additionalJumpForce);
+            currentAvailableJumps--;
         }
     }
 

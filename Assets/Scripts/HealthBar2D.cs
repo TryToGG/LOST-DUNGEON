@@ -19,8 +19,8 @@ public class HealthBar2D : MonoBehaviour
     public Image bg;
 
     [Header("血条状态")]
-    public float maxHealth = 100f;
-    public float currentHealth = 100f;
+    public float maxHealth = 100;
+    public float currentHealth = 100;
 
     [Header("黄条设置")]
     [Tooltip("扣血后黄条开始收缩前的停顿秒数")]
@@ -65,35 +65,38 @@ public class HealthBar2D : MonoBehaviour
         _initialPos = _selfRT.anchoredPosition;
 
         _fullWidth = barContainer ? barContainer.rect.width : 0f;
-        currentHealth = Mathf.Clamp(currentHealth, 0f, maxHealth);
+        currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
 
         float t = Ratio();
         if (fill) fill.fillAmount = t;
         if (yellowBar) yellowBar.fillAmount = t;
+
+        _yellowTarget = t;
+        _yellowTimer = 0f;
+
         UpdateFlameStripForFill(t, true);
-        ApplyFlameIntensity(t);
     }
     public void SetMax(float max)
     {
-        maxHealth = Mathf.Max(1f, max);
+        maxHealth = Mathf.Max(1, max);
         SetHealth(currentHealth, false);
     }
 
     public void SetHealth(float value, bool playShakeOnDamage = true)
     {
         float prevT = Ratio();
-        currentHealth = Mathf.Clamp(value, 0f, maxHealth);
+        currentHealth = Mathf.Clamp(value, 0, maxHealth);
         float t = Ratio();
 
         if (fill) fill.fillAmount = t;
 
         UpdateFlameStripForFill(t, false);
-        ApplyFlameIntensity(t);
 
         if (yellowBar)
         {
             if (t < prevT)
             {
+                Debug.LogWarning("HB2D taken damage");
                 _yellowTarget = t;
                 _yellowTimer = yellowBarDelay;
 
@@ -134,9 +137,9 @@ public class HealthBar2D : MonoBehaviour
         var shape = flamePS.shape;
         shape.shapeType = ParticleSystemShapeType.Box;
 
-        // 空血或近似空血：停止发射 & 清空现有粒子
         if (t <= noFireThreshold || _fullWidth <= 0.0001f)
         {
+            // 空血：停发并清空
             emission.enabled = false;
             if (!initialize) flamePS.Clear(true);
             shape.scale = new Vector3(0f, 0f, 0f);
@@ -145,11 +148,8 @@ public class HealthBar2D : MonoBehaviour
 
         emission.enabled = true;
 
-        // 当前“有血宽度”
         float curWidth = _fullWidth * t;
-
-        // 顶部细带：宽=curWidth，高=topBandHeight
-        shape.scale = new Vector3(curWidth, topBandHeight, 0f);
+        shape.scale = new Vector3(curWidth * 0.035f, topBandHeight, 0f);
 
         if (flameFX)
         {
@@ -159,25 +159,7 @@ public class HealthBar2D : MonoBehaviour
         }
     }
 
-    // 粒子强度/上升速度随血量变化（低血更旺）
-    void ApplyFlameIntensity(float t)
-    {
-        if (!flamePS) return;
-
-        // 发射率：t=0 → emissionRateRange.x（旺）; t=1 → emissionRateRange.y（弱）
-        var emission = flamePS.emission;
-        float rate = Mathf.Lerp(emissionRateRange.x, emissionRateRange.y, t);
-        emission.rateOverTime = rate;
-
-        // 上升速度（Velocity over Lifetime 的 y）
-        var vel = flamePS.velocityOverLifetime;
-        vel.enabled = true;
-        vel.space = ParticleSystemSimulationSpace.Local;
-        float rise = Mathf.Lerp(riseSpeedRange.x, riseSpeedRange.y, t);
-        vel.y = new ParticleSystem.MinMaxCurve(rise);
-    }
-
-    float Ratio() => (maxHealth > 0f) ? Mathf.Clamp01(currentHealth / maxHealth) : 0f;
+    float Ratio() => (maxHealth > 0f) ? currentHealth / maxHealth : 0f;
 
     IEnumerator Shake()
     {

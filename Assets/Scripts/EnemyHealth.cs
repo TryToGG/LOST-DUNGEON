@@ -4,12 +4,12 @@ using UnityEngine;
 
 public class EnemyHealth : MonoBehaviour, IDamageable
 {
-    public int maxHP = 50;
-    int _hp;
+    public float maxHP = 50;
+    float _hp;
 
     void Awake() => _hp = maxHP;
 
-    public void TakeDamage(int amount)
+    public void TakeDamage(float amount)
     { 
         _hp -= amount;
         if (_hp <= 0)
