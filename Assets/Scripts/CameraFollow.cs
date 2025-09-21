@@ -66,8 +66,14 @@ public class CameraFollow : MonoBehaviour
     [Tooltip("手动边界")]
     public Vector2 ManualBoundsMax;
 
-    [Tooltip("相机缩放")]
+    [Space]
+    [Header("相机缩放")]
+
+    [Tooltip("使用相机缩放")]
     public bool AllowZoneOrthoSize = true;
+
+    [Tooltip("相机默认缩放")]
+    public float DefaultOrthoSize = 5f;
 
     [Tooltip("相机缩放过渡速度")]
     public float OrthoLerpSpeed = 3f;
@@ -123,7 +129,8 @@ public class CameraFollow : MonoBehaviour
     Bounds _fromBounds, _toBounds;
     float _fromOrtho, _toOrtho;
 
-
+    bool _activeZoneOverrideDamping => _activeZone && _activeZone.OverrideDamping;
+    bool _activeZoneOverrideMaxSpeed => _activeZone && _activeZone.OverrideMaxSpeed;
 
     private void Awake()
     {
@@ -169,12 +176,11 @@ public class CameraFollow : MonoBehaviour
             return;
         }
         ApplyCamera(targetParams, targetBounds);
-        
+
         if (AllowZoneOrthoSize)
         {
-            float targetOrtho = _activeZone && _activeZone.UseOrthoSize ? _activeZone.OrthoSize : cam.orthographicSize;
-            if (_activeZone && _activeZone.UseOrthoSize)
-                cam.orthographicSize = Mathf.Lerp(cam.orthographicSize, Mathf.Max(0.01f, targetOrtho), OrthoLerpSpeed * Time.deltaTime);
+            float targetOrtho = _activeZone && _activeZone.UseOrthoSize ? _activeZone.OrthoSize : DefaultOrthoSize;
+            cam.orthographicSize = Mathf.Lerp(cam.orthographicSize, Mathf.Max(0.01f, targetOrtho), OrthoLerpSpeed * Time.deltaTime);
         }
     }
     void ApplyCamera(CameraParams p, Bounds clampBounds)
@@ -300,25 +306,26 @@ public class CameraFollow : MonoBehaviour
 
         if (z)
         {
-            if (z.OverrideDeadZone) 
-            { 
-                p.deadZoneSize = z.DeadZoneSize; 
-                p.vertDeadCenterOffset = z.VerticalDeadZoneOffset; 
-            }
-            if (z.OverrideLookAhead) 
+            if (z.OverrideDeadZone)
             {
-                p.lookAheadX = z.LookAheadX; 
-                p.lookAheadThreshold = z.LookAheadThreshold; 
-                p.lookAheadReturn = z.LookAheadReturn; 
+                p.deadZoneSize = z.DeadZoneSize;
+                p.vertDeadCenterOffset = z.VerticalDeadZoneOffset;
             }
-            if (z.OverrideDamping) 
+            if (z.OverrideLookAhead)
             {
-                p.dampingX = z.DampingX; 
-                p.dampingY = z.DampingY; 
+                p.lookAheadX = z.LookAheadX;
+                p.lookAheadThreshold = z.LookAheadThreshold;
+                p.lookAheadReturn = z.LookAheadReturn;
             }
-            if (z.OverrideMaxSpeed) 
+            if (z.OverrideDamping)
             {
-                p.maxSpeed = z.MaxSpeed; }
+                p.dampingX = z.DampingX;
+                p.dampingY = z.DampingY;
+            }
+            if (z.OverrideMaxSpeed)
+            {
+                p.maxSpeed = z.MaxSpeed;
+            }
         }
         return p;
     }
@@ -349,6 +356,12 @@ public class CameraFollow : MonoBehaviour
         {
             BeginZoneTransition(old, best);
             _activeZone = best;
+        }
+
+        if (best == null)
+        {
+            if (AllowZoneOrthoSize)
+                _toOrtho = DefaultOrthoSize;
         }
     }
     void BeginZoneTransition(CameraZone2D from, CameraZone2D to)
@@ -388,8 +401,7 @@ public class CameraFollow : MonoBehaviour
 
     public void AddShake(float power) => shakePower = Mathf.Max(shakePower, power);
 
-    bool _activeZoneOverrideDamping => _activeZone && _activeZone.OverrideDamping;
-    bool _activeZoneOverrideMaxSpeed => _activeZone && _activeZone.OverrideMaxSpeed;
+
 
 
 #if UNITY_EDITOR

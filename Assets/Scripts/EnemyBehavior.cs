@@ -11,12 +11,13 @@ public class EnemyBehavior : MonoBehaviour
 
     public bool canMove = false;
 
-    private void OnCollisionEnter2D(Collision2D collision)
+    private void OnCollisionStay2D(Collision2D collision)
     {
         if (collision.transform.CompareTag("Player"))
         {
-            Debug.Log("Take Damage");
             healthBar2D.Damage(atkDamage);
         }
     }
+
+
 }

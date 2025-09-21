@@ -52,6 +52,10 @@ public class PlayerBehavior : MonoBehaviour
     public int Facing { get; private set; } = 1;
 
     [Space]
+    [Header("ÑªÌõ")]
+    public HealthBar2D healthBar;
+
+    [Space]
     [Header("ÊäÈë")]
     
     [Tooltip("Jump¼ü°ó¶¨")]
@@ -83,7 +87,7 @@ public class PlayerBehavior : MonoBehaviour
         {
             SetFacing(h > 0 ? 1 : -1);
         }
-        rb.velocity = new Vector2(moveHorizontal * speed, rb.velocity.y);
+        rb.velocity = new Vector2(moveHorizontal * speed * healthBar.debuffMultiplyer, rb.velocity.y);
 
         bool jumpPressed = Input.GetButtonDown(jumpButton);
         jumpHeld = Input.GetButton(jumpButton);
