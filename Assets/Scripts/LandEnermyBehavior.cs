@@ -6,79 +6,97 @@ public class LandEnemyBehavior : MonoBehaviour
 {
     [Header("Assign(Required)")]
     public Rigidbody2D rb;
-    [Space]
+    
     [Header("Movement")]
     public float speed = 2f;
     public int Facing { get; private set; } = 1;
-    [Space]
+    private float moveDirection = 1f;
+
     [Header("Wall & Cliff Detection")]
     public float cliffCheckDistance = 0.5f;
     public float wallCheckDistance = 0.5f;
-    public LayerMask groundLayer; // 在Inspector中设置地面层级
-    [Space]
+    public LayerMask groundLayer;
+
     [Header("Jump")]
     public float jumpForce = 5f;
-    public int availableJumps = 2;
-    public int currentAvailableJumps = 2;
     public float additionalJumpForce = 4f;
-    public bool timeToJump = false;
-    [Space]
-    [Header("Other")]
-    public int noUse = 1;
+    public int availableJumps = 2;
+    private int currentAvailableJumps;
+    private bool timeToJump = false;
 
-    private float moveDirection = 1f;
+    [Header("Player Detection")]
+    public Transform player;           // 玩家 Transform
+    public float detectDistance = 3f;  // 前方检测玩家距离
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
-        
-        // 自动设置地面层级（如果未设置）
+
         if (groundLayer == 0)
         {
             groundLayer = LayerMask.GetMask("Default");
+        }
+
+        currentAvailableJumps = availableJumps;
+    }
+
+    void FixedUpdate()
+    {
+        HandleMovement();
+    }
+
+    void HandleMovement()
+    {
+        // 检查障碍物并可能掉头
+        CheckForObstacles();
+
+        // 前方有玩家则触发跳跃
+        if (IsPlayerAhead() && currentAvailableJumps > 0)
+        {
+            timeToJump = true;
+        }
+
+        // 设置面向方向
+        SetFacing(moveDirection > 0 ? 1 : -1);
+
+        // 应用水平移动
+        rb.velocity = new Vector2(moveDirection * speed, rb.velocity.y);
+
+        // 跳跃逻辑
+        if (timeToJump && currentAvailableJumps > 0)
+        {
+            float force = (currentAvailableJumps == availableJumps) ? jumpForce : additionalJumpForce;
+            rb.velocity = new Vector2(rb.velocity.x, force);
+            currentAvailableJumps--;
+            timeToJump = false;
+        }
+
+        // 重置跳跃次数（落地检测）
+        if (IsGrounded())
+        {
+            currentAvailableJumps = availableJumps;
         }
     }
 
     bool IsAtCliffEdge()
     {
-        // 计算检测起点（角色底部前方）
-        Vector2 checkOrigin = (Vector2)transform.position + 
-                             new Vector2(moveDirection * GetComponent<Collider2D>().bounds.extents.x, 
-                                        -GetComponent<Collider2D>().bounds.extents.y);
-        
-        // 向下发射射线检测地面
-        RaycastHit2D hit = Physics2D.Raycast(
-            checkOrigin, 
-            Vector2.down, 
-            cliffCheckDistance, 
-            groundLayer
-        );
-        
-        // 如果没有检测到地面，说明是悬崖
+        Vector2 checkOrigin = (Vector2)transform.position +
+                              new Vector2(moveDirection * GetComponent<Collider2D>().bounds.extents.x,
+                                          -GetComponent<Collider2D>().bounds.extents.y);
+        RaycastHit2D hit = Physics2D.Raycast(checkOrigin, Vector2.down, cliffCheckDistance, groundLayer);
         return hit.collider == null;
     }
 
     bool IsTouchingWall()
     {
-        // 计算检测起点（角色前方）
-        Vector2 checkOrigin = (Vector2)transform.position + 
-                             new Vector2(moveDirection * GetComponent<Collider2D>().bounds.extents.x, 0);
-        
-        // 向前方发射射线检测墙壁
-        RaycastHit2D hit = Physics2D.Raycast(
-            checkOrigin, 
-            Vector2.right * moveDirection, 
-            wallCheckDistance, 
-            groundLayer
-        );
-        
-        // 如果检测到碰撞，说明有墙壁
+        Vector2 checkOrigin = (Vector2)transform.position +
+                              new Vector2(moveDirection * GetComponent<Collider2D>().bounds.extents.x, 0);
+        RaycastHit2D hit = Physics2D.Raycast(checkOrigin, Vector2.right * moveDirection, wallCheckDistance, groundLayer);
         return hit.collider != null;
     }
 
     void CheckForObstacles()
     {
-        // 如果遇到悬崖或者碰到墙壁，就掉头
         if (IsAtCliffEdge() || IsTouchingWall())
         {
             TurnAround();
@@ -87,91 +105,60 @@ public class LandEnemyBehavior : MonoBehaviour
 
     void TurnAround()
     {
-        // 反转移动方向
         moveDirection *= -1;
-        
-        // 更新面向方向
-        SetFacing((int)Mathf.Sign(moveDirection));
-    }
-
-    public void MovingBehavior()
-    {
-        // 检查障碍物
-        CheckForObstacles();
-        
-        // 设置面向方向
-        if (moveDirection != 0)
-        {
-            SetFacing(moveDirection > 0 ? 1 : -1);
-        }
-        
-        // 应用移动
-        rb.velocity = new Vector2(moveDirection * speed, rb.velocity.y);
-
-        // 跳跃逻辑（如果需要）
-        if (timeToJump && currentAvailableJumps == availableJumps)
-        {
-            rb.velocity = new Vector2(rb.velocity.x, jumpForce);
-            timeToJump = false;
-        }
-        else if (timeToJump && currentAvailableJumps != 0)
-        {
-            rb.velocity = new Vector2(rb.velocity.x, additionalJumpForce);
-            timeToJump = false;
-        }
-    }
-
-    void Update()
-    {
-        MovingBehavior();
     }
 
     public void SetFacing(int dir)
     {
-        if (dir == 0 || dir == Facing)
-        {
-            return;
-        }
+        if (dir == 0 || dir == Facing) return;
         Facing = dir;
-
-        // 翻转敌人视觉
         var s = transform.localScale;
         s.x = Mathf.Abs(s.x) * dir;
         transform.localScale = s;
     }
 
-    // 可视化调试
+    bool IsGrounded()
+    {
+        Vector2 origin = (Vector2)transform.position + Vector2.down * (GetComponent<Collider2D>().bounds.extents.y + 0.1f);
+        return Physics2D.Raycast(origin, Vector2.down, 0.2f, groundLayer);
+    }
+
+    bool IsPlayerAhead()
+    {
+        if (player == null) return false;
+
+        Vector2 origin = (Vector2)transform.position;
+        Vector2 dir = Vector2.right * moveDirection;
+
+        RaycastHit2D hit = Physics2D.Raycast(origin, dir, detectDistance, LayerMask.GetMask("Player"));
+
+        Debug.DrawLine(origin, origin + dir * detectDistance, Color.yellow);
+
+        return hit.collider != null;
+    }
+
     void OnDrawGizmos()
     {
         if (!Application.isPlaying) return;
-        
-        // 绘制悬崖检测线
-        Vector2 cliffOrigin = (Vector2)transform.position + 
-                             new Vector2(moveDirection * GetComponent<Collider2D>().bounds.extents.x, 
-                                        -GetComponent<Collider2D>().bounds.extents.y);
+
+        // 悬崖检测线
+        Vector2 cliffOrigin = (Vector2)transform.position +
+                              new Vector2(moveDirection * GetComponent<Collider2D>().bounds.extents.x,
+                                          -GetComponent<Collider2D>().bounds.extents.y);
         Gizmos.color = Color.red;
         Gizmos.DrawLine(cliffOrigin, cliffOrigin + Vector2.down * cliffCheckDistance);
-        
-        // 绘制墙壁检测线
-        Vector2 wallOrigin = (Vector2)transform.position + 
-                            new Vector2(moveDirection * GetComponent<Collider2D>().bounds.extents.x, 0);
+
+        // 墙壁检测线
+        Vector2 wallOrigin = (Vector2)transform.position +
+                             new Vector2(moveDirection * GetComponent<Collider2D>().bounds.extents.x, 0);
         Gizmos.color = Color.blue;
         Gizmos.DrawLine(wallOrigin, wallOrigin + Vector2.right * moveDirection * wallCheckDistance);
-    }
 
-    private void OnCollisionEnter2D(Collision2D collision)
-    {
-        if (collision.gameObject.CompareTag("Ground"))
+        // 玩家检测线
+        if (player != null)
         {
-            currentAvailableJumps = availableJumps;
-        }
-    }
-
-    private void OnCollisionExit2D(Collision2D collision)
-    {
-        if (collision.gameObject.CompareTag("Ground"))
-        {
-            currentAvailableJumps--;
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawLine((Vector2)transform.position, (Vector2)transform.position + Vector2.right * moveDirection * detectDistance);
         }
     }
 }
