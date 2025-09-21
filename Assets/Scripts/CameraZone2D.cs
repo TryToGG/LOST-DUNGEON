@@ -28,20 +28,32 @@ public class CameraZone2D : MonoBehaviour
     public Vector2 DeadZoneSize = new Vector2(3f, 2f);
     public float VerticalDeadZoneOffset = 0.5f;
 
+    [Space]
+    [Header("预判")]
+
     [Tooltip("启用局部预判")]
     public bool OverrideLookAhead = false;
     public float LookAheadX = 2f;
     public float LookAheadThreshold = 0.1f;
     public float LookAheadReturn = 3f;
 
+    [Space]
+    [Header("阻尼")]
+
     [Tooltip("启用局部阻尼")]
     public bool OverrideDamping = false;
     public float DampingX = 0.15f;
     public float DampingY = 0.25f;
 
+    [Space]
+    [Header("最高速度")]
+
     [Tooltip("启用局部最高速度")]
     public bool OverrideMaxSpeed = false;
     public float MaxSpeed = 100f;
+
+    [Space]
+    [Header("相机视野")]
 
     [Tooltip("启用局部相机视野")]
     public bool UseOrthoSize = false;

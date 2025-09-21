@@ -55,7 +55,7 @@ public class CameraFollow : MonoBehaviour
     public float FallVelocityThreshold = -6f;
 
     [Space]
-    [Header("µØÍ¼·À´©°ï")]
+    [Header("µØÍ¼±ß½ç")]
 
     [Tooltip("µØÍ¼±ß¿òÅö×²Ïä")]
     public Collider2D BoundryCollider;
