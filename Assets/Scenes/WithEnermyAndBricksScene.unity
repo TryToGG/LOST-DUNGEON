@@ -2109,6 +2109,7 @@ GameObject:
   - component: {fileID: 696053637}
   - component: {fileID: 696053633}
   - component: {fileID: 696053632}
+  - component: {fileID: 696053639}
   m_Layer: 7
   m_Name: Flyer
   m_TagString: Untagged
@@ -2319,6 +2320,27 @@ MonoBehaviour:
   healthBar2D: {fileID: 6311766438435458515}
   player: {fileID: 932829503}
   atkDamage: 10
+--- !u!95 &696053639
+Animator:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 696053631}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 4e4395e0e81d87b429aa4c808899d27f, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &723281501
 GameObject:
   m_ObjectHideFlags: 0
@@ -4402,6 +4424,7 @@ GameObject:
   - component: {fileID: 932829506}
   - component: {fileID: 932829504}
   - component: {fileID: 932829510}
+  - component: {fileID: 932829511}
   m_Layer: 8
   m_Name: Player
   m_TagString: Player
@@ -4445,7 +4468,7 @@ Transform:
   m_GameObject: {fileID: 932829503}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -6.21, y: 6.4, z: 0}
+  m_LocalPosition: {x: -40.44, y: 5.62, z: 0}
   m_LocalScale: {x: -1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -4636,6 +4659,27 @@ MonoBehaviour:
   - {x: 0.5, y: -0.5, z: 0}
   - {x: 0.5, y: 0.5, z: 0}
   - {x: -0.5, y: 0.5, z: 0}
+--- !u!95 &932829511
+Animator:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 932829503}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 0ac8ffed2f89bfa4b9a895b66b4c2900, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!43 &992532839
 Mesh:
   m_ObjectHideFlags: 0
