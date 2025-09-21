@@ -9,8 +9,6 @@ public class EnemyBehavior : MonoBehaviour
 
     public float atkDamage = 10;
 
-    public bool canMove = false;
-
     private void OnCollisionStay2D(Collision2D collision)
     {
         if (collision.transform.CompareTag("Player"))
