@@ -72,9 +72,23 @@ public class CameraFollow : MonoBehaviour
     [Tooltip("相机缩放过渡速度")]
     public float OrthoLerpSpeed = 3f;
 
+    [Tooltip("相机缩放默认大小")]
+    public float DefaultOrthoSize = 5f;
+
     [Tooltip("相机抖动")]
     public float ShakeDecay = 5f;
 
+<<<<<<< Updated upstream
+=======
+    [Tooltip("相机过渡")]
+    public float TransitionDuration = 0.35f;
+
+    [Tooltip("插值比例")]
+    [Range(0f, 2f)] public float BoundsLerpWeight = 1.0f;
+
+    public AnimationCurve TransitionCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
+
+>>>>>>> Stashed changes
     Camera cam;
     Vector3 vel;
     float currentLookAheadX;
@@ -95,6 +109,51 @@ public class CameraFollow : MonoBehaviour
     {
         CameraParams p = BuildParamsFromActiveZone();
 
+<<<<<<< Updated upstream
+=======
+        if (_isTransitioning)
+        {
+            _transitionT += (TransitionDuration <= 0f ? 1f : Time.deltaTime / TransitionDuration);
+            float t = Mathf.Clamp01(_transitionT);
+            float e = TransitionCurve != null ? TransitionCurve.Evaluate(t) : t;
+
+            var p = CameraParams.Lerp(_fromParams, _toParams, e);
+
+            Bounds clampBounds;
+            if (BoundsLerpWeight > 0f)
+            {
+                Vector3 c = Vector3.Lerp(_fromBounds.center, _toBounds.center, e * BoundsLerpWeight);
+                Vector3 s = Vector3.Lerp(_fromBounds.size, _toBounds.size, e * BoundsLerpWeight);
+                clampBounds = new Bounds(c, s);
+            }
+            else
+            {
+                clampBounds = _toBounds;
+            }
+
+            if (AllowZoneOrthoSize && _toZone && _toZone.UseOrthoSize)
+            {
+                cam.orthographicSize = Mathf.Lerp(_fromOrtho, Mathf.Max(0.01f, _toOrtho), e);
+            }
+
+            ApplyCamera(p, clampBounds);
+            if (t >= 1f)
+            {
+                _isTransitioning = false;
+            }
+            return;
+        }
+        ApplyCamera(targetParams, targetBounds);
+        
+        if (AllowZoneOrthoSize)
+        {
+            float want = (_activeZone && _activeZone.UseOrthoSize) ? _activeZone.OrthoSize : DefaultOrthoSize;
+            cam.orthographicSize = Mathf.Lerp(cam.orthographicSize, Mathf.Max(0.01f, want), OrthoLerpSpeed * Time.deltaTime);
+        }
+    }
+    void ApplyCamera(CameraParams p, Bounds clampBounds)
+    {
+>>>>>>> Stashed changes
         float halfH = cam.orthographicSize;
         float halfW = halfH * cam.aspect;
 
@@ -239,7 +298,49 @@ public class CameraFollow : MonoBehaviour
                 best = z;
             }
         }
+<<<<<<< Updated upstream
         _activeZone = best;
+=======
+        if (old != best)
+        {
+            BeginZoneTransition(old, best);
+            _activeZone = best;
+        }
+    }
+    void BeginZoneTransition(CameraZone2D from, CameraZone2D to)
+    {
+        _fromZone = from;
+        _toZone = to;
+
+        _fromParams = BuildParamsFromZone(from);
+        _toParams = BuildParamsFromZone(to);
+
+        _fromBounds = (from && from.HasBounds) ? from.GetWorldBounds() : globalBounds;
+        _toBounds = (to && to.HasBounds) ? to.GetWorldBounds() : globalBounds;
+
+        _fromOrtho = cam.orthographicSize;
+        _toOrtho = (AllowZoneOrthoSize && to && to.UseOrthoSize) ? to.OrthoSize : DefaultOrthoSize;
+
+        _transitionT = 0f;
+        _isTransitioning = true;
+    }
+
+    void RebuildGlobalBounds()
+    {
+        if (BoundryCollider)
+            globalBounds = BoundryCollider.bounds;
+        else
+        {
+            var min = new Vector3(ManualBoundsMin.x, ManualBoundsMin.y, 0f);
+            var max = new Vector3(ManualBoundsMax.x, ManualBoundsMax.y, 0f);
+            if (max.x <= min.x || max.y <= min.y) globalBounds = new Bounds();
+            else
+            {
+                Vector3 size = max - min;
+                globalBounds = new Bounds((min + max) * 0.5f, size);
+            }
+        }
+>>>>>>> Stashed changes
     }
 
     public void AddShake(float power) => shakePower = Mathf.Max(shakePower, power);
