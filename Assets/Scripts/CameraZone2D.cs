@@ -64,7 +64,8 @@ public class CameraZone2D : MonoBehaviour
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (!cam)
-        { 
+        {
+            Debug.Log("Touched");
             cam = Camera.main ? Camera.main.GetComponent<CameraFollow>() : null;
         }
         if (!cam)
