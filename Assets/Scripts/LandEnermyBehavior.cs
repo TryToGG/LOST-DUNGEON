@@ -6,7 +6,8 @@ public class LandEnemyBehavior : MonoBehaviour
 {
     [Header("Assign(Required)")]
     public Rigidbody2D rb;
-    
+    public Animator animator;  // 攻击动画控制
+
     [Header("Movement")]
     public float speed = 2f;
     public int Facing { get; private set; } = 1;
@@ -14,85 +15,81 @@ public class LandEnemyBehavior : MonoBehaviour
 
     [Header("Wall & Cliff Detection")]
     public float cliffCheckDistance = 0.5f;
-    public float wallCheckDistance = 0.5f;
+    public float wallCheckDistance = 0.3f;
     public LayerMask groundLayer;
+    public LayerMask Spike;
 
-    [Header("Jump")]
-    public float jumpForce = 5f;
-    public float additionalJumpForce = 4f;
-    public int availableJumps = 2;
-    private int currentAvailableJumps;
-    private bool timeToJump = false;
+    [Header("Debug")]
+    public bool showDebug = true;
 
-    [Header("Player Detection")]
-    public Transform player;           // 玩家 Transform
-    public float detectDistance = 3f;  // 前方检测玩家距离
+    private bool isAttacking = false; // 是否在攻击状态
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
-
         if (groundLayer == 0)
         {
             groundLayer = LayerMask.GetMask("Default");
         }
-
-        currentAvailableJumps = availableJumps;
     }
 
     void FixedUpdate()
     {
-        HandleMovement();
+        if (!isAttacking)  // 攻击时不走路
+        {
+            HandleMovement();
+        }
+        else
+        {
+            rb.velocity = new Vector2(0, rb.velocity.y); // 停止水平移动
+        }
     }
 
     void HandleMovement()
     {
-        // 检查障碍物并可能掉头
         CheckForObstacles();
 
-        // 前方有玩家则触发跳跃
-        if (IsPlayerAhead() && currentAvailableJumps > 0)
-        {
-            timeToJump = true;
-        }
-
-        // 设置面向方向
         SetFacing(moveDirection > 0 ? 1 : -1);
 
-        // 应用水平移动
         rb.velocity = new Vector2(moveDirection * speed, rb.velocity.y);
-
-        // 跳跃逻辑
-        if (timeToJump && currentAvailableJumps > 0)
-        {
-            float force = (currentAvailableJumps == availableJumps) ? jumpForce : additionalJumpForce;
-            rb.velocity = new Vector2(rb.velocity.x, force);
-            currentAvailableJumps--;
-            timeToJump = false;
-        }
-
-        // 重置跳跃次数（落地检测）
-        if (IsGrounded())
-        {
-            currentAvailableJumps = availableJumps;
-        }
     }
 
+    #region Tilemap 检测
     bool IsAtCliffEdge()
     {
-        Vector2 checkOrigin = (Vector2)transform.position +
-                              new Vector2(moveDirection * GetComponent<Collider2D>().bounds.extents.x,
-                                          -GetComponent<Collider2D>().bounds.extents.y);
-        RaycastHit2D hit = Physics2D.Raycast(checkOrigin, Vector2.down, cliffCheckDistance, groundLayer);
-        return hit.collider == null;
+        Vector2 checkPos = (Vector2)transform.position + new Vector2(moveDirection * (GetComponent<Collider2D>().bounds.extents.x + 0.05f),
+                                                                      -GetComponent<Collider2D>().bounds.extents.y - 0.05f);
+        bool grounded = Physics2D.OverlapCircle(checkPos, 0.1f, groundLayer);
+
+        if (showDebug)
+            Debug.DrawLine(checkPos, checkPos + Vector2.down * 0.1f, Color.red);
+
+        return !grounded;
     }
 
     bool IsTouchingWall()
     {
-        Vector2 checkOrigin = (Vector2)transform.position +
-                              new Vector2(moveDirection * GetComponent<Collider2D>().bounds.extents.x, 0);
-        RaycastHit2D hit = Physics2D.Raycast(checkOrigin, Vector2.right * moveDirection, wallCheckDistance, groundLayer);
-        return hit.collider != null;
+        Collider2D col = GetComponent<Collider2D>();
+
+        Vector2 midOrigin = (Vector2)transform.position + Vector2.up * (col.bounds.size.y * 0.25f);
+        Vector2 midSize = new Vector2(0.1f, col.bounds.size.y * 0.5f);
+
+        Vector2 lowOrigin = (Vector2)transform.position + Vector2.down * (col.bounds.size.y * 0.25f);
+        Vector2 lowSize = new Vector2(0.1f, col.bounds.size.y * 0.2f);
+
+        RaycastHit2D wallHit = Physics2D.BoxCast(midOrigin, midSize, 0f, Vector2.right * moveDirection, wallCheckDistance, groundLayer);
+        RaycastHit2D spikeHit = Physics2D.BoxCast(lowOrigin, lowSize, 0f, Vector2.right * moveDirection, wallCheckDistance, Spike);
+
+        if (showDebug)
+        {
+            Color wallColor = wallHit.collider ? Color.red : Color.blue;
+            Color spikeColor = spikeHit.collider ? Color.magenta : Color.cyan;
+
+            Debug.DrawLine(midOrigin, midOrigin + Vector2.right * moveDirection * wallCheckDistance, wallColor);
+            Debug.DrawLine(lowOrigin, lowOrigin + Vector2.right * moveDirection * wallCheckDistance, spikeColor);
+        }
+
+        return wallHit.collider != null || spikeHit.collider != null;
     }
 
     void CheckForObstacles()
@@ -102,6 +99,7 @@ public class LandEnemyBehavior : MonoBehaviour
             TurnAround();
         }
     }
+    #endregion
 
     void TurnAround()
     {
@@ -117,48 +115,27 @@ public class LandEnemyBehavior : MonoBehaviour
         transform.localScale = s;
     }
 
-    bool IsGrounded()
+    // 碰到玩家时触发攻击
+    void OnCollisionEnter2D(Collision2D collision)
     {
-        Vector2 origin = (Vector2)transform.position + Vector2.down * (GetComponent<Collider2D>().bounds.extents.y + 0.1f);
-        return Physics2D.Raycast(origin, Vector2.down, 0.2f, groundLayer);
-    }
-
-    bool IsPlayerAhead()
-    {
-        if (player == null) return false;
-
-        Vector2 origin = (Vector2)transform.position;
-        Vector2 dir = Vector2.right * moveDirection;
-
-        RaycastHit2D hit = Physics2D.Raycast(origin, dir, detectDistance, LayerMask.GetMask("Player"));
-
-        Debug.DrawLine(origin, origin + dir * detectDistance, Color.yellow);
-
-        return hit.collider != null;
-    }
-
-    void OnDrawGizmos()
-    {
-        if (!Application.isPlaying) return;
-
-        // 悬崖检测线
-        Vector2 cliffOrigin = (Vector2)transform.position +
-                              new Vector2(moveDirection * GetComponent<Collider2D>().bounds.extents.x,
-                                          -GetComponent<Collider2D>().bounds.extents.y);
-        Gizmos.color = Color.red;
-        Gizmos.DrawLine(cliffOrigin, cliffOrigin + Vector2.down * cliffCheckDistance);
-
-        // 墙壁检测线
-        Vector2 wallOrigin = (Vector2)transform.position +
-                             new Vector2(moveDirection * GetComponent<Collider2D>().bounds.extents.x, 0);
-        Gizmos.color = Color.blue;
-        Gizmos.DrawLine(wallOrigin, wallOrigin + Vector2.right * moveDirection * wallCheckDistance);
-
-        // 玩家检测线
-        if (player != null)
+        if (collision.collider.CompareTag("Player"))
         {
-            Gizmos.color = Color.yellow;
-            Gizmos.DrawLine((Vector2)transform.position, (Vector2)transform.position + Vector2.right * moveDirection * detectDistance);
+            isAttacking = true;
+            rb.velocity = Vector2.zero; // 停止运动
+
+            if (animator != null)
+            {
+                animator.SetTrigger("Attack"); // 播放攻击动画
+            }
+        }
+    }
+
+    // 玩家离开后恢复巡逻
+    void OnCollisionExit2D(Collision2D collision)
+    {
+        if (collision.collider.CompareTag("Player"))
+        {
+            isAttacking = false;
         }
     }
 }
