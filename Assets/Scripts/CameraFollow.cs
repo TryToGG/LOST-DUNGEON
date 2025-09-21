@@ -78,8 +78,6 @@ public class CameraFollow : MonoBehaviour
     [Tooltip("相机抖动")]
     public float ShakeDecay = 5f;
 
-<<<<<<< Updated upstream
-=======
     [Tooltip("相机过渡")]
     public float TransitionDuration = 0.35f;
 
@@ -88,7 +86,6 @@ public class CameraFollow : MonoBehaviour
 
     public AnimationCurve TransitionCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
 
->>>>>>> Stashed changes
     Camera cam;
     Vector3 vel;
     float currentLookAheadX;
@@ -109,8 +106,6 @@ public class CameraFollow : MonoBehaviour
     {
         CameraParams p = BuildParamsFromActiveZone();
 
-<<<<<<< Updated upstream
-=======
         if (_isTransitioning)
         {
             _transitionT += (TransitionDuration <= 0f ? 1f : Time.deltaTime / TransitionDuration);
@@ -153,7 +148,6 @@ public class CameraFollow : MonoBehaviour
     }
     void ApplyCamera(CameraParams p, Bounds clampBounds)
     {
->>>>>>> Stashed changes
         float halfH = cam.orthographicSize;
         float halfW = halfH * cam.aspect;
 
@@ -298,9 +292,7 @@ public class CameraFollow : MonoBehaviour
                 best = z;
             }
         }
-<<<<<<< Updated upstream
         _activeZone = best;
-=======
         if (old != best)
         {
             BeginZoneTransition(old, best);
@@ -340,7 +332,6 @@ public class CameraFollow : MonoBehaviour
                 globalBounds = new Bounds((min + max) * 0.5f, size);
             }
         }
->>>>>>> Stashed changes
     }
 
     public void AddShake(float power) => shakePower = Mathf.Max(shakePower, power);
