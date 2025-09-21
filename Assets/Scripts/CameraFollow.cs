@@ -66,14 +66,17 @@ public class CameraFollow : MonoBehaviour
     [Tooltip("手动边界")]
     public Vector2 ManualBoundsMax;
 
-    [Tooltip("相机缩放")]
+    [Space]
+    [Header("相机缩放")]
+
+    [Tooltip("使用相机缩放")]
     public bool AllowZoneOrthoSize = true;
+
+    [Tooltip("相机默认缩放")]
+    public float DefaultOrthoSize = 5f;
 
     [Tooltip("相机缩放过渡速度")]
     public float OrthoLerpSpeed = 3f;
-
-    [Tooltip("相机缩放默认大小")]
-    public float DefaultOrthoSize = 5f;
 
     [Tooltip("相机抖动")]
     public float ShakeDecay = 5f;
@@ -82,7 +85,7 @@ public class CameraFollow : MonoBehaviour
     public float TransitionDuration = 0.35f;
 
     [Tooltip("插值比例")]
-    [Range(0f, 2f)] public float BoundsLerpWeight = 1.0f;
+    [Range(0f, 1f)] public float BoundsLerpWeight = 1.0f;
 
     public AnimationCurve TransitionCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
 
@@ -96,6 +99,39 @@ public class CameraFollow : MonoBehaviour
     readonly List<CameraZone2D> _zones = new List<CameraZone2D>();
     CameraZone2D _activeZone;
 
+    float _transitionT;
+    bool _isTransitioning;
+    CameraZone2D _fromZone, _toZone;
+
+    struct CameraParams
+    {
+        public Vector2 deadZoneSize;
+        public float vertDeadCenterOffset;
+        public float lookAheadX, lookAheadThreshold, lookAheadReturn;
+        public float dampingX, dampingY, maxSpeed;
+
+        public static CameraParams Lerp(CameraParams a, CameraParams b, float t)
+        {
+            CameraParams r;
+            r.deadZoneSize = Vector2.Lerp(a.deadZoneSize, b.deadZoneSize, t);
+            r.vertDeadCenterOffset = Mathf.Lerp(a.vertDeadCenterOffset, b.vertDeadCenterOffset, t);
+            r.lookAheadX = Mathf.Lerp(a.lookAheadX, b.lookAheadX, t);
+            r.lookAheadThreshold = Mathf.Lerp(a.lookAheadThreshold, b.lookAheadThreshold, t);
+            r.lookAheadReturn = Mathf.Lerp(a.lookAheadReturn, b.lookAheadReturn, t);
+            r.dampingX = Mathf.Lerp(a.dampingX, b.dampingX, t);
+            r.dampingY = Mathf.Lerp(a.dampingY, b.dampingY, t);
+            r.maxSpeed = Mathf.Lerp(a.maxSpeed, b.maxSpeed, t);
+            return r;
+        }
+    }
+
+    CameraParams _fromParams, _toParams;
+    Bounds _fromBounds, _toBounds;
+    float _fromOrtho, _toOrtho;
+
+    bool _activeZoneOverrideDamping => _activeZone && _activeZone.OverrideDamping;
+    bool _activeZoneOverrideMaxSpeed => _activeZone && _activeZone.OverrideMaxSpeed;
+
     private void Awake()
     {
         cam = GetComponent<Camera>();
@@ -104,7 +140,8 @@ public class CameraFollow : MonoBehaviour
 
     private void LateUpdate()
     {
-        CameraParams p = BuildParamsFromActiveZone();
+        CameraParams targetParams = BuildParamsFromActiveZone();
+        Bounds targetBounds = (_activeZone && _activeZone.HasBounds) ? _activeZone.GetWorldBounds() : globalBounds;
 
         if (_isTransitioning)
         {
@@ -139,11 +176,11 @@ public class CameraFollow : MonoBehaviour
             return;
         }
         ApplyCamera(targetParams, targetBounds);
-        
+
         if (AllowZoneOrthoSize)
         {
-            float want = (_activeZone && _activeZone.UseOrthoSize) ? _activeZone.OrthoSize : DefaultOrthoSize;
-            cam.orthographicSize = Mathf.Lerp(cam.orthographicSize, Mathf.Max(0.01f, want), OrthoLerpSpeed * Time.deltaTime);
+            float targetOrtho = _activeZone && _activeZone.UseOrthoSize ? _activeZone.OrthoSize : DefaultOrthoSize;
+            cam.orthographicSize = Mathf.Lerp(cam.orthographicSize, Mathf.Max(0.01f, targetOrtho), OrthoLerpSpeed * Time.deltaTime);
         }
     }
     void ApplyCamera(CameraParams p, Bounds clampBounds)
@@ -153,9 +190,14 @@ public class CameraFollow : MonoBehaviour
 
         Vector3 camPos = transform.position;
         Vector2 camCenter = new Vector2(camPos.x, camPos.y);
-        Vector2 deadHalf = p.deadZoneSize * 0.5f;
 
-        Rect deadRect = new Rect(camCenter.x - deadHalf.x,camCenter.y - deadHalf.y + p.vertDeadCenterOffset,p.deadZoneSize.x,p.deadZoneSize.y);
+        Vector2 deadHalf = p.deadZoneSize * 0.5f;
+        Rect deadRect = new Rect(
+            camCenter.x - deadHalf.x,
+            camCenter.y - deadHalf.y + p.vertDeadCenterOffset,
+            p.deadZoneSize.x,
+            p.deadZoneSize.y
+        );
 
         Vector2 targetPos = Target.position;
         Vector2 desiredCenter = camCenter;
@@ -194,13 +236,11 @@ public class CameraFollow : MonoBehaviour
 
         float dampingY = p.dampingY;
         float vy = TargetRB.velocity.y;
-        if (vy < FallVelocityThreshold) dampingY = Mathf.Max(0.5f, p.dampingY - FallFollowBoost);
+        if (vy < FallVelocityThreshold) dampingY = Mathf.Max(0.11f, p.dampingY - FallFollowBoost);
 
         float newX = Mathf.SmoothDamp(camPos.x, desiredCenter.x, ref vel.x, Mathf.Max(0.01f, p.dampingX), p.maxSpeed, Time.deltaTime);
         float newY = Mathf.SmoothDamp(camPos.y, desiredCenter.y, ref vel.y, Mathf.Max(0.01f, dampingY), p.maxSpeed, Time.deltaTime);
         Vector3 smoothed = new Vector3(newX, newY, camPos.z);
-
-        Bounds clampBounds = _activeZone && _activeZone.HasBounds ? _activeZone.GetWorldBounds() : globalBounds;
 
         if (clampBounds.size != Vector3.zero)
         {
@@ -224,30 +264,8 @@ public class CameraFollow : MonoBehaviour
         else shakeOffset = Vector2.zero;
 
         transform.position = smoothed + (Vector3)shakeOffset;
+    }
 
-        if (AllowZoneOrthoSize)
-        {
-            float targetOrtho = _activeZone && _activeZone.UseOrthoSize ? _activeZone.OrthoSize : cam.orthographicSize;
-            if (_activeZone && _activeZone.UseOrthoSize)
-                cam.orthographicSize = Mathf.Lerp(cam.orthographicSize, Mathf.Max(0.01f, targetOrtho), OrthoLerpSpeed * Time.deltaTime);
-        }
-    }
-    void RebuildGlobalBounds()
-    {
-        if (BoundryCollider)
-            globalBounds = BoundryCollider.bounds;
-        else
-        {
-            var min = new Vector3(ManualBoundsMin.x, ManualBoundsMin.y, 0f);
-            var max = new Vector3(ManualBoundsMax.x, ManualBoundsMax.y, 0f);
-            if (max.x <= min.x || max.y <= min.y) globalBounds = new Bounds();
-            else
-            {
-                Vector3 size = max - min;
-                globalBounds = new Bounds((min + max) * 0.5f, size);
-            }
-        }
-    }
     CameraParams BuildParamsFromActiveZone()
     {
         var p = new CameraParams
@@ -271,6 +289,47 @@ public class CameraFollow : MonoBehaviour
         }
         return p;
     }
+
+    CameraParams BuildParamsFromZone(CameraZone2D z)
+    {
+        var p = new CameraParams
+        {
+            deadZoneSize = DeadZoneSize,
+            vertDeadCenterOffset = VerticalDZOffset,
+            lookAheadX = LookAheadX,
+            lookAheadThreshold = LookAheadThreshold,
+            lookAheadReturn = LookAheadSpeed,
+            dampingX = DampingX,
+            dampingY = DampingY,
+            maxSpeed = MaxSpeed
+        };
+
+        if (z)
+        {
+            if (z.OverrideDeadZone)
+            {
+                p.deadZoneSize = z.DeadZoneSize;
+                p.vertDeadCenterOffset = z.VerticalDeadZoneOffset;
+            }
+            if (z.OverrideLookAhead)
+            {
+                p.lookAheadX = z.LookAheadX;
+                p.lookAheadThreshold = z.LookAheadThreshold;
+                p.lookAheadReturn = z.LookAheadReturn;
+            }
+            if (z.OverrideDamping)
+            {
+                p.dampingX = z.DampingX;
+                p.dampingY = z.DampingY;
+            }
+            if (z.OverrideMaxSpeed)
+            {
+                p.maxSpeed = z.MaxSpeed;
+            }
+        }
+        return p;
+    }
+
     internal void RegisterZone(CameraZone2D zone)
     {
         if (!_zones.Contains(zone)) _zones.Add(zone);
@@ -282,7 +341,8 @@ public class CameraFollow : MonoBehaviour
         PickActiveZone();
     }
     void PickActiveZone()
-    { 
+    {
+        CameraZone2D old = _activeZone;
         CameraZone2D best = null;
         for (int i = 0; i < _zones.Count; i++)
         {
@@ -292,11 +352,16 @@ public class CameraFollow : MonoBehaviour
                 best = z;
             }
         }
-        _activeZone = best;
         if (old != best)
         {
             BeginZoneTransition(old, best);
             _activeZone = best;
+        }
+
+        if (best == null)
+        {
+            if (AllowZoneOrthoSize)
+                _toOrtho = DefaultOrthoSize;
         }
     }
     void BeginZoneTransition(CameraZone2D from, CameraZone2D to)
@@ -311,7 +376,7 @@ public class CameraFollow : MonoBehaviour
         _toBounds = (to && to.HasBounds) ? to.GetWorldBounds() : globalBounds;
 
         _fromOrtho = cam.orthographicSize;
-        _toOrtho = (AllowZoneOrthoSize && to && to.UseOrthoSize) ? to.OrthoSize : DefaultOrthoSize;
+        _toOrtho = (AllowZoneOrthoSize && to && to.UseOrthoSize) ? to.OrthoSize : _fromOrtho;
 
         _transitionT = 0f;
         _isTransitioning = true;
@@ -336,16 +401,8 @@ public class CameraFollow : MonoBehaviour
 
     public void AddShake(float power) => shakePower = Mathf.Max(shakePower, power);
 
-    struct CameraParams
-    {
-        public Vector2 deadZoneSize;
-        public float vertDeadCenterOffset;
-        public float lookAheadX, lookAheadThreshold, lookAheadReturn;
-        public float dampingX, dampingY, maxSpeed;
-    }
 
-    bool _activeZoneOverrideDamping => _activeZone && _activeZone.OverrideDamping;
-    bool _activeZoneOverrideMaxSpeed => _activeZone && _activeZone.OverrideMaxSpeed;
+
 
 #if UNITY_EDITOR
     void OnDrawGizmosSelected()
