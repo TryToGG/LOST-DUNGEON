@@ -27,6 +27,9 @@ public class PlayerBehavior : MonoBehaviour
     [Tooltip("松开跳跃重力系数")]
     public float lowJumpGravityMt = 2.0f;
 
+    [Tooltip("离地后仍可起跳")]
+    public float coyoteTime = 0.12f;
+
     [Space]
     [Header("落地检测")]
 
@@ -73,6 +76,9 @@ public class PlayerBehavior : MonoBehaviour
     //允许二段跳?
     bool canDoubleJump;
 
+    //郊狼跳计时
+    float coyoteTimer;
+
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -96,14 +102,23 @@ public class PlayerBehavior : MonoBehaviour
 
         if (grounded)
         {
+            coyoteTimer = coyoteTime;
             canDoubleJump = allowDoubleJump;
+        }
+        else
+        {
+            if (coyoteTimer > 0f)
+            { 
+                coyoteTimer -= Time.deltaTime;
+            }
         }
 
         if (jumpPressed)
         {
-            if (grounded)
+            if (grounded || coyoteTimer > 0f)
             {
                 DoJump();
+                coyoteTimer = 0f; 
             }
             else if (allowDoubleJump && canDoubleJump)
             {
